@@ -44,8 +44,6 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public List<Employee> getEmployeesByRole(String role) {
-        return employeeRepository.findByRole(role);
-    }
-
-    // findByEmployeeId METHOD REMOVED - we use getEmployeeById(Long id) instead
-}
+        // Call the new method name
+        return employeeRepository.findByRoleName(role);
+    }}

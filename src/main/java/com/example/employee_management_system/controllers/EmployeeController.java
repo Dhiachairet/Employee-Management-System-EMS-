@@ -2,13 +2,18 @@ package com.example.employee_management_system.controllers;
 
 import com.example.employee_management_system.entity.Employee;
 import com.example.employee_management_system.entity.Department;
+import com.example.employee_management_system.Models.ERole;
+import com.example.employee_management_system.Models.Role;
 import com.example.employee_management_system.service.EmployeeService;
 import com.example.employee_management_system.service.DepartmentService;
+import com.example.employee_management_system.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 
 @Controller
@@ -20,6 +25,12 @@ public class EmployeeController {
 
     @Autowired
     private DepartmentService departmentService;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @GetMapping("/all")
     public String listEmployees(Model model) {
@@ -40,8 +51,16 @@ public class EmployeeController {
 
     @PostMapping("/save")
     public String saveEmployee(@ModelAttribute("employee") Employee employee) {
+        // Set default role as EMPLOYEE
+        Set<Role> roles = new HashSet<>();
+        Role employeeRole = roleRepository.findByName(ERole.ROLE_EMPLOYEE)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        roles.add(employeeRole);
+        employee.setRoles(roles);
 
-        employee.setRole("EMPLOYEE");
+        // Encode the password
+        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
+
         employeeService.createEmployee(employee);
         return "redirect:/employees/all";
     }
@@ -64,7 +83,7 @@ public class EmployeeController {
             existingEmployee.setEmail(employee.getEmail());
             existingEmployee.setPhone(employee.getPhone());
             if (employee.getPassword() != null && !employee.getPassword().trim().isEmpty()) {
-                existingEmployee.setPassword(employee.getPassword());
+                existingEmployee.setPassword(passwordEncoder.encode(employee.getPassword()));
             }
             existingEmployee.setPosition(employee.getPosition());
             existingEmployee.setSalary(employee.getSalary());

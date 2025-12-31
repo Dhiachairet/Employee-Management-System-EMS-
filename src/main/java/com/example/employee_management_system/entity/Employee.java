@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import java.time.LocalDate;
 import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -24,12 +25,12 @@ public class Employee extends User {
     @OneToMany(mappedBy = "employee")
     private List<Performance> performances;
 
-
     public Employee() {}
 
-    public Employee(String email, String password, String phone, String role,
+
+    public Employee(String email, String password, String phone,
                     Double salary, LocalDate hireDate, String position) {
-        super(email, password, phone, role);
+        super(email, password, phone);
         this.salary = salary;
         this.hireDate = hireDate;
         this.position = position;
