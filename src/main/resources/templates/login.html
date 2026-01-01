@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Employee Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .login-body {
+            padding: 40px;
+        }
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-login {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 115, 223, 0.4);
+        }
+        .alert {
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+        .login-logo {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="login-card">
+                <!-- Header -->
+                <div class="login-header">
+                    <div class="login-logo">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h2>Employee Management System</h2>
+                    <p class="mb-0 opacity-75">Sign in to your account</p>
+                </div>
+
+                <!-- Body -->
+                <div class="login-body">
+                    <!-- Error/Success Messages -->
+                    <div id="message" class="alert d-none"></div>
+
+                    <!-- Login Form -->
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label for="email" class="form-label fw-bold">
+                                <i class="fas fa-envelope me-2"></i>Email Address
+                            </label>
+                            <input type="email" class="form-control" id="email"
+                                   placeholder="Enter your email" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label for="password" class="form-label fw-bold">
+                                    <i class="fas fa-lock me-2"></i>Password
+                                </label>
+                                <a href="#" class="text-decoration-none small">
+                                    Forgot password?
+                                </a>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" class="form-control" id="password"
+                                       placeholder="Enter your password" required>
+                                <button class="btn btn-outline-secondary" type="button"
+                                        id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-login text-white">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="text-muted mb-2">Don't have an account?</p>
+                        <a href="/register" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-1"></i>Create Account
+                        </a>
+                    </div>
+
+                    <hr class="my-4">
+
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-4">
+                <p class="text-white mb-1">
+                    ©  Employee Management System
+                </p>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM Elements
+    const loginForm = document.getElementById('loginForm');
+    const messageDiv = document.getElementById('message');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    // Toggle password visibility
+    togglePassword.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+    });
+
+    // Handle form submission
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Get form data
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        // Show loading state
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+        submitBtn.disabled = true;
+
+        try {
+            // Send login request to REST API
+            const response = await fetch('/api/auth/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: email,
+                    password: password
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Login successful
+                showMessage('success', 'Login successful! Redirecting...');
+
+                // Store token in localStorage (for JavaScript access)
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    email: data.email,
+                    roles: data.roles
+                }));
+
+                // Store token in HTTP-only cookie (for server-side access)
+                // This is the key part - the cookie will be sent automatically with requests
+                document.cookie = `token=${data.token}; path=/; max-age=86400; SameSite=Strict`;
+
+                // Also store in regular cookie (for JavaScript access if needed)
+                document.cookie = `auth_token=${data.token}; path=/; max-age=86400`;
+
+                // Redirect to dashboard after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+
+            } else {
+                // Login failed
+                showMessage('danger', data.message || 'Login failed. Please check your credentials.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+
+        } catch (error) {
+            console.error('Login error:', error);
+            showMessage('danger', 'Network error. Please try again.');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+    // Show message function
+    function showMessage(type, text) {
+        messageDiv.className = `alert alert-${type}`;
+        messageDiv.textContent = text;
+        messageDiv.classList.remove('d-none');
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            messageDiv.classList.add('d-none');
+        }, 5000);
+    }
+
+    // Check if already logged in
+    window.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            window.location.href = '/dashboard';
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

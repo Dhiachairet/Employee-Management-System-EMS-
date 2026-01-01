@@ -77,18 +77,28 @@ public class EmployeeController {
 
     @PostMapping("/update/{id}")
     public String updateEmployee(@PathVariable("id") Long id,
-                                 @ModelAttribute("employee") Employee employee) {
+                                 @ModelAttribute("employee") Employee employee,
+                                 @RequestParam(value = "newPassword", required = false) String newPassword,
+                                 @RequestParam(value = "departmentId", required = false) Long departmentId) {
+
         Employee existingEmployee = employeeService.getEmployeeById(id);
         if (existingEmployee != null) {
             existingEmployee.setEmail(employee.getEmail());
             existingEmployee.setPhone(employee.getPhone());
-            if (employee.getPassword() != null && !employee.getPassword().trim().isEmpty()) {
-                existingEmployee.setPassword(passwordEncoder.encode(employee.getPassword()));
-            }
             existingEmployee.setPosition(employee.getPosition());
             existingEmployee.setSalary(employee.getSalary());
             existingEmployee.setHireDate(employee.getHireDate());
-            existingEmployee.setDepartment(employee.getDepartment());
+
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                existingEmployee.setPassword(passwordEncoder.encode(newPassword));
+            }
+
+            if (departmentId != null) {
+                Department dept = departmentService.getDepartmentById(departmentId);
+                existingEmployee.setDepartment(dept);
+            } else {
+                existingEmployee.setDepartment(null);
+            }
 
             employeeService.updateEmployee(existingEmployee);
         }

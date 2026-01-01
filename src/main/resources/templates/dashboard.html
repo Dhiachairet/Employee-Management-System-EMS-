@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dashboard-card">
+        <h1><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+
+        <div class="alert alert-success mt-3">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>Authentication Successful!</strong>
+        </div>
+
+        <div class="mt-4">
+            <h4>User Information:</h4>
+            <p><strong>Username:</strong> <span th:text="${username}">User</span></p>
+            <p><strong>Roles:</strong> <span th:text="${roles}">Roles</span></p>
+        </div>
+
+        <div class="mt-4">
+            <h4>Quick Links:</h4>
+            <div class="row mt-3">
+                <div class="col-md-3 mb-2">
+                    <a href="/employees/all" class="btn btn-primary w-100">
+                        <i class="fas fa-users me-1"></i> Employees
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="/departments/all" class="btn btn-success w-100">
+                        <i class="fas fa-building me-1"></i> Departments
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="/leave-requests/all" class="btn btn-warning w-100">
+                        <i class="fas fa-calendar-alt me-1"></i> Leave Requests
+                    </a>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <a href="#" onclick="logout()" class="btn btn-danger w-100">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function logout() {
+        // Clear localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        // Clear cookies
+        document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+
+        // Redirect to login
+        window.location.href = '/login';
+    }
+
+    // Check if we have a token in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenParam = urlParams.get('token');
+
+    if (tokenParam) {
+        // Store the token from URL
+        localStorage.setItem('token', tokenParam);
+        document.cookie = `token=${tokenParam}; path=/; max-age=86400; SameSite=Strict`;
+
+        // Remove token from URL
+        window.history.replaceState({}, document.title, "/dashboard");
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

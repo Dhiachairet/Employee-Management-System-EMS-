@@ -50,10 +50,25 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
+        // 1. Check Authorization header first (for REST API)
         String headerAuth = request.getHeader("Authorization");
-
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
             return headerAuth.substring(7);
+        }
+
+        // 2. Check for JWT token in cookies (for browser MVC access)
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie cookie : cookies) {
+                if ("jwt".equals(cookie.getName()) || "token".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    // Remove quotes if present
+                    if (token.startsWith("\"") && token.endsWith("\"")) {
+                        token = token.substring(1, token.length() - 1);
+                    }
+                    return token;
+                }
+            }
         }
 
         return null;

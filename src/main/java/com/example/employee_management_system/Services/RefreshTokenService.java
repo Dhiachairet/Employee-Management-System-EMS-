@@ -28,18 +28,29 @@ public class RefreshTokenService {
         return refreshTokenRepository.findByToken(token);
     }
 
+    @Transactional
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = new RefreshToken();
+        // First, check if user already has a refresh token
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUserId(userId);
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (existingToken.isPresent()) {
+            // Update the existing token
+            RefreshToken refreshToken = existingToken.get();
+            refreshToken.setToken(UUID.randomUUID().toString());
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+            return refreshTokenRepository.save(refreshToken);
+        } else {
+            // Create new token
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        refreshToken.setUser(user);
-        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
-        refreshToken.setToken(UUID.randomUUID().toString());
+            RefreshToken refreshToken = new RefreshToken();
+            refreshToken.setUser(user);
+            refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+            refreshToken.setToken(UUID.randomUUID().toString());
 
-        refreshToken = refreshTokenRepository.save(refreshToken);
-        return refreshToken;
+            return refreshTokenRepository.save(refreshToken);
+        }
     }
 
     public RefreshToken verifyExpiration(RefreshToken token) {
@@ -52,8 +63,6 @@ public class RefreshTokenService {
 
     @Transactional
     public void deleteByUserId(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.deleteByUserId(userId);
     }
 }

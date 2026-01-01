@@ -11,6 +11,7 @@ public interface LeaveRequestService {
     LeaveRequest getLeaveRequestById(Long id);
     LeaveRequest updateLeaveRequest(LeaveRequest leaveRequest);
     void deleteLeaveRequest(Long id);
+
     List<LeaveRequest> getLeaveRequestsByEmployee(Long employeeId);
     List<LeaveRequest> getLeaveRequestsByStatus(String status);
 }
