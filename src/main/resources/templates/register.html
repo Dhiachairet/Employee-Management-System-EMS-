@@ -1,471 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Register - Employee Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .register-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        .register-header {
-            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        .register-body {
-            padding: 40px;
-        }
-        .form-control {
-            padding: 12px 15px;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            transition: all 0.3s;
-        }
-        .form-control:focus {
-            border-color: #1cc88a;
-            box-shadow: 0 0 0 0.2rem rgba(28, 200, 138, 0.25);
-        }
-        .btn-register {
-            background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(28, 200, 138, 0.4);
-        }
-        .alert {
-            border-radius: 8px;
-            padding: 12px 15px;
-        }
-        .password-strength {
-            height: 5px;
-            margin-top: 5px;
-            border-radius: 3px;
-            transition: all 0.3s;
-        }
-        .strength-weak { background-color: #dc3545; width: 25%; }
-        .strength-medium { background-color: #ffc107; width: 50%; }
-        .strength-strong { background-color: #28a745; width: 75%; }
-        .strength-very-strong { background-color: #20c997; width: 100%; }
-        .role-option {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
-        }
-        .role-option:hover {
-            border-color: #1cc88a;
-            background-color: rgba(28, 200, 138, 0.05);
-        }
-        .role-option.selected {
-            border-color: #1cc88a;
-            background-color: rgba(28, 200, 138, 0.1);
-        }
-        .role-icon {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-        .role-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
+        .loading {
+            display: none;
         }
     </style>
 </head>
-<body>
-<div class="container">
+<body class="bg-light">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-7">
-            <div class="register-card">
-                <!-- Header -->
-                <div class="register-header">
-                    <div class="login-logo">
-                        <i class="fas fa-user-plus"></i>
-                    </div>
-                    <h2>Create Account</h2>
-                    <p class="mb-0 opacity-75">Join the Employee Management System</p>
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Employee Registration</h4>
                 </div>
+                <div class="card-body">
+                    <!-- Messages -->
+                    <div id="successMessage" class="alert alert-success d-none"></div>
+                    <div id="errorMessage" class="alert alert-danger d-none"></div>
 
-                <!-- Body -->
-                <div class="register-body">
-                    <!-- Error/Success Messages -->
-                    <div id="message" class="alert d-none"></div>
+                    <!-- Loading spinner -->
+                    <div id="loadingSpinner" class="text-center loading">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Registering your account...</p>
+                    </div>
 
                     <!-- Registration Form -->
-                    <form id="registerForm">
+                    <form id="registrationForm" onsubmit="return registerUser(event)">
                         <div class="row">
-                            <!-- Email -->
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label fw-bold">
-                                    <i class="fas fa-envelope me-2"></i>Email Address
-                                </label>
-                                <input type="email" class="form-control" id="email"
-                                       placeholder="you@example.com" required>
-                                <div class="form-text">This will be your login username</div>
-                            </div>
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">Account Information</h5>
 
-                            <!-- Phone -->
-                            <div class="col-md-6 mb-3">
-                                <label for="phone" class="form-label fw-bold">
-                                    <i class="fas fa-phone me-2"></i>Phone Number
-                                </label>
-                                <input type="tel" class="form-control" id="phone"
-                                       placeholder="(123) 456-7890" required>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <!-- Password -->
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label fw-bold">
-                                    <i class="fas fa-lock me-2"></i>Password
-                                </label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="password"
-                                           placeholder="Create password" required
-                                           oninput="checkPasswordStrength(this.value)">
-                                    <button class="btn btn-outline-secondary" type="button"
-                                            onclick="togglePasswordVisibility('password')">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" required>
                                 </div>
-                                <div class="password-strength mt-2" id="passwordStrength"></div>
-                                <div class="form-text">
-                                    Minimum 8 characters with uppercase, lowercase, and numbers
+
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password *</label>
+                                    <input type="password" class="form-control" id="password" required>
+                                    <small class="text-muted">Minimum 6 characters</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                                    <input type="password" class="form-control" id="confirmPassword" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone">
                                 </div>
                             </div>
 
-                            <!-- Confirm Password -->
-                            <div class="col-md-6 mb-3">
-                                <label for="confirmPassword" class="form-label fw-bold">
-                                    <i class="fas fa-lock me-2"></i>Confirm Password
-                                </label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control" id="confirmPassword"
-                                           placeholder="Confirm password" required>
-                                    <button class="btn btn-outline-secondary" type="button"
-                                            onclick="togglePasswordVisibility('confirmPassword')">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                                <div class="form-text" id="passwordMatch"></div>
-                            </div>
-                        </div>
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">Additional Information</h5>
 
-                        <!-- Role Selection (Single Select) -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">
-                                <i class="fas fa-user-tag me-2"></i>Select Your Role
-                            </label>
-                            <div class="row">
-                                <!-- Employee Role (Default) -->
-                                <div class="col-md-6">
-                                    <div class="role-option selected" onclick="selectRole('employee')" id="roleEmployee">
-                                        <div class="role-icon text-primary">
-                                            <i class="fas fa-user-tie"></i>
-                                        </div>
-                                        <h5>Employee</h5>
-                                        <p class="small text-muted mb-2">
-                                            Standard employee access. Can view and request leave.
-                                        </p>
-                                        <span class="badge bg-primary role-badge">Default</span>
+                                <div class="mb-3">
+                                    <label for="position" class="form-label">Position</label>
+                                    <input type="text" class="form-control" id="position">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Account Type *</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role"
+                                               id="employee" value="employee" checked>
+                                        <label class="form-check-label" for="employee">
+                                            Employee
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role"
+                                               id="manager" value="manager">
+                                        <label class="form-check-label" for="manager">
+                                            Manager
+                                        </label>
                                     </div>
                                 </div>
 
-                                <!-- Manager Role -->
-                                <div class="col-md-6">
-                                    <div class="role-option" onclick="selectRole('manager')" id="roleManager">
-                                        <div class="role-icon text-warning">
-                                            <i class="fas fa-user-tie"></i>
-                                        </div>
-                                        <h5>Manager</h5>
-                                        <p class="small text-muted mb-2">
-                                            Can manage team members and approve leave requests.
-                                        </p>
-                                        <span class="badge bg-warning role-badge">Requires Approval</span>
-                                    </div>
+                                <div class="alert alert-info mt-4">
+                                    <small>
+                                        <strong>Note:</strong> After registration, you can update your
+                                        position and other details in your profile.
+                                    </small>
                                 </div>
                             </div>
-
-                            <!-- Hidden input for selected role -->
-                            <input type="hidden" id="selectedRole" name="role" value="employee">
-
-                            <div class="form-text mt-2">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Employee role is selected by default. Manager role requires admin approval.
-                            </div>
                         </div>
 
-                        <!-- Terms and Conditions -->
-                        <div class="mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="terms" required>
-                                <label class="form-check-label" for="terms">
-                                    I agree to the <a href="#" class="text-decoration-none">Terms of Service</a>
-                                    and <a href="#" class="text-decoration-none">Privacy Policy</a>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-                            <a href="/login" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-1"></i>Back to Login
-                            </a>
-                            <button type="submit" class="btn btn-register text-white">
-                                <i class="fas fa-user-plus me-2"></i>Create Account
-                            </button>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a th:href="@{/login}" class="btn btn-secondary me-md-2">Back to Login</a>
+                            <button type="submit" class="btn btn-primary">Register</button>
                         </div>
                     </form>
                 </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="text-center mt-4">
-                <p class="text-white mb-1">
-                    © 2024 Employee Management System
-                </p>
-                <p class="text-white opacity-75 small">
-                    By registering, you agree to our terms and conditions
-                </p>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // DOM Elements
-    const registerForm = document.getElementById('registerForm');
-    const messageDiv = document.getElementById('message');
-    const passwordInput = document.getElementById('password');
-    const confirmPasswordInput = document.getElementById('confirmPassword');
-    const passwordMatchDiv = document.getElementById('passwordMatch');
-    const selectedRoleInput = document.getElementById('selectedRole');
+    function registerUser(event) {
+        event.preventDefault();
 
-    // Role selection
-    function selectRole(role) {
-        // Remove selected class from all roles
-        document.querySelectorAll('.role-option').forEach(el => {
-            el.classList.remove('selected');
-        });
-
-        // Add selected class to clicked role
-        const selectedElement = document.getElementById(`role${role.charAt(0).toUpperCase() + role.slice(1)}`);
-        selectedElement.classList.add('selected');
-
-        // Update hidden input
-        selectedRoleInput.value = role;
-    }
-
-    // Password strength checker
-    function checkPasswordStrength(password) {
-        const strengthDiv = document.getElementById('passwordStrength');
-        let strength = 0;
-
-        if (password.length >= 8) strength++;
-        if (/[a-z]/.test(password)) strength++;
-        if (/[A-Z]/.test(password)) strength++;
-        if (/[0-9]/.test(password)) strength++;
-        if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-        strengthDiv.className = 'password-strength';
-
-        if (password.length === 0) {
-            strengthDiv.className = 'password-strength d-none';
-            return;
-        }
-
-        if (strength < 2) {
-            strengthDiv.className = 'password-strength strength-weak';
-        } else if (strength < 3) {
-            strengthDiv.className = 'password-strength strength-medium';
-        } else if (strength < 4) {
-            strengthDiv.className = 'password-strength strength-strong';
-        } else {
-            strengthDiv.className = 'password-strength strength-very-strong';
-        }
-
-        // Check password match
-        checkPasswordMatch();
-    }
-
-    // Check if passwords match
-    function checkPasswordMatch() {
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-
-        if (confirmPassword.length === 0) {
-            passwordMatchDiv.textContent = '';
-            return;
-        }
-
-        if (password === confirmPassword) {
-            passwordMatchDiv.textContent = 'Passwords match ✓';
-            passwordMatchDiv.className = 'form-text text-success';
-        } else {
-            passwordMatchDiv.textContent = 'Passwords do not match ✗';
-            passwordMatchDiv.className = 'form-text text-danger';
-        }
-    }
-
-    // Toggle password visibility
-    function togglePasswordVisibility(fieldId) {
-        const input = document.getElementById(fieldId);
-        const button = input.parentNode.querySelector('button');
-
-        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-        input.setAttribute('type', type);
-
-        const icon = button.querySelector('i');
-        icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
-    }
-
-    // Setup event listeners for password matching
-    passwordInput.addEventListener('input', checkPasswordMatch);
-    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
-
-    // Handle form submission
-    registerForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        // Get form data
+        // Get form values
         const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
         const phone = document.getElementById('phone').value;
-        const password = passwordInput.value;
-        const confirmPassword = confirmPasswordInput.value;
-        const role = selectedRoleInput.value;
+        const position = document.getElementById('position').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
 
         // Validate passwords match
         if (password !== confirmPassword) {
-            showMessage('danger', 'Passwords do not match!');
-            return;
+            showError('Passwords do not match!');
+            return false;
         }
 
-        // Show loading state
-        const submitBtn = registerForm.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
-        submitBtn.disabled = true;
+        // Show loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('registrationForm').style.display = 'none';
 
-        try {
-            // Send registration request to REST API
-            const response = await fetch('/api/auth/signup', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: password,
-                    phone: phone,
-                    roles: [role] // Send as array with single role
-                })
+        // Prepare data for API call
+        const userData = {
+            email: email,
+            password: password,
+            phone: phone,
+            roles: [role]
+        };
+
+        // Call your existing AuthController API
+        fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(error => { throw error; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading spinner
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('registrationForm').style.display = 'block';
+
+                // Show success message
+                showSuccess('Registration successful! Redirecting to login...');
+
+                // Redirect to login after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/login?registered=true';
+                }, 2000);
+            })
+            .catch(error => {
+                // Hide loading spinner
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('registrationForm').style.display = 'block';
+
+                // Show error message
+                const errorMsg = error.message || 'Registration failed. Please try again.';
+                showError(errorMsg);
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                // Registration successful
-                showMessage('success', data.message || 'Registration successful!');
-
-                // Auto-login after successful registration
-                setTimeout(async () => {
-                    try {
-                        const loginResponse = await fetch('/api/auth/signin', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                email: email,
-                                password: password
-                            })
-                        });
-
-                        const loginData = await loginResponse.json();
-
-                        if (loginResponse.ok) {
-                            localStorage.setItem('token', loginData.token);
-                            localStorage.setItem('user', JSON.stringify({
-                                id: loginData.id,
-                                email: loginData.email,
-                                roles: loginData.roles
-                            }));
-
-                            document.cookie = `token=${loginData.token}; path=/; max-age=86400`;
-
-                            window.location.href = '/dashboard';
-                        } else {
-                            // Login failed after registration
-                            showMessage('warning', 'Account created! Please login manually.');
-                            submitBtn.innerHTML = originalText;
-                            submitBtn.disabled = false;
-                        }
-
-                    } catch (loginError) {
-                        showMessage('warning', 'Account created! Please login manually.');
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                    }
-                }, 2000);
-
-            } else {
-                // Registration failed
-                showMessage('danger', data.message || 'Registration failed. Please try again.');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-
-        } catch (error) {
-            console.error('Registration error:', error);
-            showMessage('danger', 'Network error. Please try again.');
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    });
-
-    // Show message function
-    function showMessage(type, text) {
-        messageDiv.className = `alert alert-${type}`;
-        messageDiv.textContent = text;
-        messageDiv.classList.remove('d-none');
-
-        // Auto hide after 5 seconds (unless it's success)
-        if (type !== 'success') {
-            setTimeout(() => {
-                messageDiv.classList.add('d-none');
-            }, 5000);
-        }
+        return false;
     }
 
-    // Check if already logged in
-    window.addEventListener('DOMContentLoaded', () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            window.location.href = '/dashboard';
-        }
-    });
-</script>
+    function showSuccess(message) {
+        const successDiv = document.getElementById('successMessage');
+        successDiv.textContent = message;
+        successDiv.classList.remove('d-none');
+        document.getElementById('errorMessage').classList.add('d-none');
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('d-none');
+        document.getElementById('successMessage').classList.add('d-none');
+    }
+</script>
 </body>
 </html>

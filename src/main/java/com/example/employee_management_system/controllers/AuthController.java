@@ -10,7 +10,9 @@ import com.example.employee_management_system.Response.MessageResponse;
 import com.example.employee_management_system.Services.RefreshTokenService;
 import com.example.employee_management_system.Services.UserDetailsImpl;
 import com.example.employee_management_system.Utils.JwtUtils;
+import com.example.employee_management_system.entity.Employee;
 import com.example.employee_management_system.entity.User;
+import com.example.employee_management_system.repository.EmployeeRepository;
 import com.example.employee_management_system.repository.RoleRepository;
 import com.example.employee_management_system.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -22,6 +24,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +40,9 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    EmployeeRepository employeeRepository;
 
     @Autowired
     RoleRepository roleRepository;
@@ -120,7 +127,23 @@ public class AuthController {
         }
 
         user.setRoles(roles);
-        userRepository.save(user);
+
+        // Create Employee directly instead of User + Employee
+        Employee employee = new Employee();
+        employee.setEmail(user.getEmail());
+        employee.setPassword(user.getPassword());
+        employee.setPhone(user.getPhone());
+        employee.setRoles(user.getRoles());
+
+        // Set default employee fields
+        employee.setPosition("Employee");
+        employee.setSalary(0.0);
+        employee.setHireDate(LocalDate.now());
+
+        // Save Employee (which will automatically save User due to inheritance)
+        Employee savedEmployee = employeeRepository.save(employee);
+
+        // Don't need to save User separately since Employee extends User
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }

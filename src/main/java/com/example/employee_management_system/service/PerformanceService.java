@@ -1,8 +1,6 @@
 package com.example.employee_management_system.service;
 
-
 import com.example.employee_management_system.entity.Performance;
-
 import java.util.List;
 
 public interface PerformanceService {
@@ -11,5 +9,6 @@ public interface PerformanceService {
     Performance getPerformanceById(Long id);
     Performance updatePerformance(Performance performance);
     void deletePerformance(Long id);
-    List<Performance> getPerformancesByEmployee(Long employeeId);
+    List<Performance> getPerformanceByEmployeeId(Long employeeId);
+    List<Performance> getPerformanceByEmployeeAndDateRange(Long employeeId, String startDate, String endDate);
 }

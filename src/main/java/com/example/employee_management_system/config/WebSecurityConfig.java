@@ -58,48 +58,62 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().migrateSession()
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false))
                 .authorizeHttpRequests(auth -> auth
                         // ===== PUBLIC ENDPOINTS =====
-                        // Static resources
+                        .requestMatchers("/", "/login", "/register", "/logout").permitAll()
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-
-                        // Auth pages
-                        .requestMatchers("/", "/login", "/register").permitAll()
-
-                        // REST API auth endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-
-                        // H2 Console (development only)
+                        .requestMatchers("/api/auth/**").permitAll()  // This allows /api/auth/signup
                         .requestMatchers("/h2-console/**").permitAll()
 
-                        // ===== MVC CONTROLLER PATHS =====
-                        // Employee management
-                        .requestMatchers("/employees/**").authenticated()
+                        // ===== ADMIN ONLY ROUTES =====
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/departments/**").hasAnyRole("ADMIN", "HR", "MANAGER")
+                        .requestMatchers("/employees/**").hasAnyRole("ADMIN", "HR", "MANAGER")
+                        .requestMatchers("/users/**").hasRole("ADMIN")
 
-                        // Department management
-                        .requestMatchers("/departments/**").authenticated()
+                        // ===== HR ROUTES =====
+                        .requestMatchers("/hr/**").hasAnyRole("HR", "ADMIN")
+                        .requestMatchers("/leave-requests/approve/**").hasAnyRole("HR", "MANAGER", "ADMIN")
+                        .requestMatchers("/leave-requests/all").hasAnyRole("HR", "MANAGER", "ADMIN")
 
-                        // Leave requests
-                        .requestMatchers("/leave-requests/**").authenticated()
+                        // ===== EMPLOYEE ROUTES =====
+                        .requestMatchers("/employee/**").hasAnyRole("EMPLOYEE", "MANAGER", "HR", "ADMIN")
+                        .requestMatchers("/my-leaves/**").hasAnyRole("EMPLOYEE", "MANAGER", "HR", "ADMIN")
+                        .requestMatchers("/my-profile/**").hasAnyRole("EMPLOYEE", "MANAGER", "HR", "ADMIN")
 
-                        // User management
-                        .requestMatchers("/users/**").authenticated()
+                        // ===== MANAGER ROUTES =====
+                        .requestMatchers("/manager/**").hasAnyRole("MANAGER", "ADMIN")
 
-                        // Dashboard
-                        .requestMatchers("/dashboard/**").authenticated()
+                        // ===== DASHBOARD ACCESS =====
+                        .requestMatchers("/dashboard").authenticated()
 
-                        // ===== REST API PATHS =====
-                        .requestMatchers("/api/test/**").permitAll() // or authenticated()
-                        .requestMatchers("/api/**").authenticated()
+                        // ===== API ENDPOINTS =====
+                        .requestMatchers("/api/employees/**").hasAnyRole("ADMIN", "HR", "MANAGER")
+                        .requestMatchers("/api/departments/**").hasAnyRole("ADMIN", "HR", "MANAGER")
+                        .requestMatchers("/api/leaves/**").authenticated()
 
-                        // ===== ANY OTHER REQUEST =====
                         .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/perform_login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureUrl("/login?error=true")
+                        .permitAll()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout=true")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll()
                 );
 
-        // For H2 Console to work in development
         http.headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
-
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 

@@ -1,8 +1,6 @@
 package com.example.employee_management_system.service;
 
-
 import com.example.employee_management_system.entity.Department;
-
 import java.util.List;
 
 public interface DepartmentService {
@@ -12,4 +10,8 @@ public interface DepartmentService {
     Department updateDepartment(Department department);
     void deleteDepartment(Long id);
     Department findByName(String name);
+
+    // New methods for controllers
+    long getTotalDepartments();
+    long countEmployeesInDepartment(Long departmentId);
 }

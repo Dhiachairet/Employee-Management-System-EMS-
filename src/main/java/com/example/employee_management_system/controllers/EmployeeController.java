@@ -1,113 +1,249 @@
 package com.example.employee_management_system.controllers;
 
 import com.example.employee_management_system.entity.Employee;
-import com.example.employee_management_system.entity.Department;
-import com.example.employee_management_system.Models.ERole;
-import com.example.employee_management_system.Models.Role;
+import com.example.employee_management_system.entity.LeaveRequest;
 import com.example.employee_management_system.service.EmployeeService;
-import com.example.employee_management_system.service.DepartmentService;
-import com.example.employee_management_system.repository.RoleRepository;
+import com.example.employee_management_system.service.LeaveRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-@RequestMapping("/employees")
+@RequestMapping("/employee")
+@PreAuthorize("hasAnyRole('EMPLOYEE', 'MANAGER', 'HR', 'ADMIN')")
 public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
 
     @Autowired
-    private DepartmentService departmentService;
+    private LeaveRequestService leaveRequestService;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    @GetMapping("/dashboard")
+    public String employeeDashboard(Model model, Authentication authentication) {
+        String email = authentication.getName();
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+        try {
+            Employee employee = employeeService.getEmployeeByEmail(email);
+            model.addAttribute("employee", employee);
 
-    @GetMapping("/all")
-    public String listEmployees(Model model) {
-        List<Employee> listEmployees = employeeService.getAllEmployees();
-        model.addAttribute("listEmployees", listEmployees);
-        return "liste_employees";
-    }
+            List<LeaveRequest> myLeaves = leaveRequestService.getLeaveRequestsByEmployeeId(employee.getId());
+            model.addAttribute("myLeaves", myLeaves != null ? myLeaves : new ArrayList<>());
 
-    @GetMapping("/add")
-    public String showAddForm(Model model) {
-        Employee employee = new Employee();
-        List<Department> departments = departmentService.getAllDepartments();
+            // Calculate statistics
+            if (myLeaves != null && !myLeaves.isEmpty()) {
+                long totalLeaves = myLeaves.size();
+                long approvedLeaves = myLeaves.stream()
+                        .filter(l -> "APPROVED".equals(l.getStatus()))
+                        .count();
+                long pendingLeaves = myLeaves.stream()
+                        .filter(l -> "PENDING".equals(l.getStatus()))
+                        .count();
+                long rejectedLeaves = myLeaves.stream()
+                        .filter(l -> "REJECTED".equals(l.getStatus()))
+                        .count();
 
-        model.addAttribute("employee", employee);
-        model.addAttribute("departments", departments);
-        return "new_employee";
-    }
+                // Count by type
+                long sickLeaves = myLeaves.stream()
+                        .filter(l -> "SICK".equals(l.getLeaveType()))
+                        .count();
+                long vacationLeaves = myLeaves.stream()
+                        .filter(l -> "VACATION".equals(l.getLeaveType()))
+                        .count();
+                long otherLeaves = totalLeaves - sickLeaves - vacationLeaves;
 
-    @PostMapping("/save")
-    public String saveEmployee(@ModelAttribute("employee") Employee employee) {
-        // Set default role as EMPLOYEE
-        Set<Role> roles = new HashSet<>();
-        Role employeeRole = roleRepository.findByName(ERole.ROLE_EMPLOYEE)
-                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-        roles.add(employeeRole);
-        employee.setRoles(roles);
+                // Calculate percentages
+                int sickPercentage = totalLeaves > 0 ? (int) Math.round((sickLeaves * 100.0) / totalLeaves) : 0;
+                int vacationPercentage = totalLeaves > 0 ? (int) Math.round((vacationLeaves * 100.0) / totalLeaves) : 0;
+                int otherPercentage = totalLeaves > 0 ? (int) Math.round((otherLeaves * 100.0) / totalLeaves) : 0;
 
-        // Encode the password
-        employee.setPassword(passwordEncoder.encode(employee.getPassword()));
-
-        employeeService.createEmployee(employee);
-        return "redirect:/employees/all";
-    }
-
-    @GetMapping("/edit/{id}")
-    public String showUpdateForm(@PathVariable("id") Long id, Model model) {
-        Employee employee = employeeService.getEmployeeById(id);
-        List<Department> departments = departmentService.getAllDepartments();
-
-        model.addAttribute("employee", employee);
-        model.addAttribute("departments", departments);
-        return "update_employee";
-    }
-
-    @PostMapping("/update/{id}")
-    public String updateEmployee(@PathVariable("id") Long id,
-                                 @ModelAttribute("employee") Employee employee,
-                                 @RequestParam(value = "newPassword", required = false) String newPassword,
-                                 @RequestParam(value = "departmentId", required = false) Long departmentId) {
-
-        Employee existingEmployee = employeeService.getEmployeeById(id);
-        if (existingEmployee != null) {
-            existingEmployee.setEmail(employee.getEmail());
-            existingEmployee.setPhone(employee.getPhone());
-            existingEmployee.setPosition(employee.getPosition());
-            existingEmployee.setSalary(employee.getSalary());
-            existingEmployee.setHireDate(employee.getHireDate());
-
-            if (newPassword != null && !newPassword.trim().isEmpty()) {
-                existingEmployee.setPassword(passwordEncoder.encode(newPassword));
-            }
-
-            if (departmentId != null) {
-                Department dept = departmentService.getDepartmentById(departmentId);
-                existingEmployee.setDepartment(dept);
+                model.addAttribute("totalLeaves", totalLeaves);
+                model.addAttribute("approvedLeaves", approvedLeaves);
+                model.addAttribute("pendingLeaves", pendingLeaves);
+                model.addAttribute("rejectedLeaves", rejectedLeaves);
+                model.addAttribute("sickLeaves", sickLeaves);
+                model.addAttribute("vacationLeaves", vacationLeaves);
+                model.addAttribute("otherLeaves", otherLeaves);
+                model.addAttribute("sickPercentage", sickPercentage);
+                model.addAttribute("vacationPercentage", vacationPercentage);
+                model.addAttribute("otherPercentage", otherPercentage);
             } else {
-                existingEmployee.setDepartment(null);
+                // Set default values
+                model.addAttribute("totalLeaves", 0);
+                model.addAttribute("approvedLeaves", 0);
+                model.addAttribute("pendingLeaves", 0);
+                model.addAttribute("rejectedLeaves", 0);
+                model.addAttribute("sickLeaves", 0);
+                model.addAttribute("vacationLeaves", 0);
+                model.addAttribute("otherLeaves", 0);
+                model.addAttribute("sickPercentage", 0);
+                model.addAttribute("vacationPercentage", 0);
+                model.addAttribute("otherPercentage", 0);
             }
 
-            employeeService.updateEmployee(existingEmployee);
+        } catch (Exception e) {
+            // Create a dummy employee object with basic info
+            Employee dummyEmployee = new Employee();
+            dummyEmployee.setEmail(email);
+            dummyEmployee.setPosition("Employee");
+            dummyEmployee.setSalary(0.0);
+            model.addAttribute("employee", dummyEmployee);
+            model.addAttribute("myLeaves", new ArrayList<>());
+
+            // Set default values for stats
+            model.addAttribute("totalLeaves", 0);
+            model.addAttribute("approvedLeaves", 0);
+            model.addAttribute("pendingLeaves", 0);
+            model.addAttribute("rejectedLeaves", 0);
+            model.addAttribute("sickLeaves", 0);
+            model.addAttribute("vacationLeaves", 0);
+            model.addAttribute("otherLeaves", 0);
+            model.addAttribute("sickPercentage", 0);
+            model.addAttribute("vacationPercentage", 0);
+            model.addAttribute("otherPercentage", 0);
         }
-        return "redirect:/employees/all";
+
+        return "employee/dashboard";
+    }
+    @GetMapping("/profile")
+    public String viewProfile(Model model, Authentication authentication) {
+        String email = authentication.getName();
+
+        try {
+            Employee employee = employeeService.getEmployeeByEmail(email);
+            model.addAttribute("employee", employee);
+        } catch (Exception e) {
+            // Create a dummy employee object with basic info
+            Employee dummyEmployee = new Employee();
+            dummyEmployee.setEmail(email);
+            dummyEmployee.setPosition("Employee");
+            dummyEmployee.setSalary(0.0);
+            model.addAttribute("employee", dummyEmployee);
+        }
+
+        return "employee/profile";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteEmployee(@PathVariable("id") Long id) {
-        employeeService.deleteEmployee(id);
-        return "redirect:/employees/all";
+    @GetMapping("/leaves")
+    public String myLeaves(Model model, Authentication authentication) {
+        String email = authentication.getName();
+
+        try {
+            Employee employee = employeeService.getEmployeeByEmail(email);
+            List<LeaveRequest> leaveRequests = leaveRequestService.getLeaveRequestsByEmployeeId(employee.getId());
+
+            model.addAttribute("employee", employee);
+            model.addAttribute("leaveRequests", leaveRequests != null ? leaveRequests : new ArrayList<>());
+
+            // Calculate statistics
+            if (leaveRequests != null && !leaveRequests.isEmpty()) {
+                long totalLeaves = leaveRequests.size();
+                long approvedLeaves = leaveRequests.stream()
+                        .filter(l -> "APPROVED".equals(l.getStatus()))
+                        .count();
+                long pendingLeaves = leaveRequests.stream()
+                        .filter(l -> "PENDING".equals(l.getStatus()))
+                        .count();
+                long rejectedLeaves = leaveRequests.stream()
+                        .filter(l -> "REJECTED".equals(l.getStatus()))
+                        .count();
+
+                // Count by type
+                long sickLeaves = leaveRequests.stream()
+                        .filter(l -> "SICK".equals(l.getLeaveType()))
+                        .count();
+                long vacationLeaves = leaveRequests.stream()
+                        .filter(l -> "VACATION".equals(l.getLeaveType()))
+                        .count();
+                long otherLeaves = totalLeaves - sickLeaves - vacationLeaves;
+
+                model.addAttribute("totalLeaves", totalLeaves);
+                model.addAttribute("approvedLeaves", approvedLeaves);
+                model.addAttribute("pendingLeaves", pendingLeaves);
+                model.addAttribute("rejectedLeaves", rejectedLeaves);
+                model.addAttribute("sickLeaves", sickLeaves);
+                model.addAttribute("vacationLeaves", vacationLeaves);
+                model.addAttribute("otherLeaves", otherLeaves);
+            } else {
+                // Set default values
+                model.addAttribute("totalLeaves", 0);
+                model.addAttribute("approvedLeaves", 0);
+                model.addAttribute("pendingLeaves", 0);
+                model.addAttribute("rejectedLeaves", 0);
+                model.addAttribute("sickLeaves", 0);
+                model.addAttribute("vacationLeaves", 0);
+                model.addAttribute("otherLeaves", 0);
+            }
+
+        } catch (Exception e) {
+            model.addAttribute("leaveRequests", new ArrayList<>());
+            model.addAttribute("message", "Please complete your employee profile to view leaves.");
+            model.addAttribute("totalLeaves", 0);
+            model.addAttribute("approvedLeaves", 0);
+            model.addAttribute("pendingLeaves", 0);
+            model.addAttribute("rejectedLeaves", 0);
+        }
+
+        return "employee/leaves";
+    }
+
+    @GetMapping("/leaves/apply")
+    public String applyLeaveForm(Model model, Authentication authentication) {
+        String email = authentication.getName();
+
+        try {
+            Employee employee = employeeService.getEmployeeByEmail(email);
+            model.addAttribute("leaveRequest", new LeaveRequest());
+            model.addAttribute("employee", employee);
+            return "employee/apply_leave";
+        } catch (Exception e) {
+            model.addAttribute("message", "Please complete your employee profile first");
+            return "redirect:/employee/leaves?error=Please complete your employee profile first";
+        }
+    }
+
+    @PostMapping("/leaves/apply")
+    public String applyLeave(@ModelAttribute LeaveRequest leaveRequest,
+                             Authentication authentication,
+                             Model model) {
+        String email = authentication.getName();
+
+        try {
+            Employee employee = employeeService.getEmployeeByEmail(email);
+
+            // Validate dates
+            if (leaveRequest.getStartDate() == null || leaveRequest.getEndDate() == null) {
+                model.addAttribute("error", "Please select both start and end dates");
+                model.addAttribute("employee", employee);
+                model.addAttribute("leaveRequest", leaveRequest);
+                return "employee/apply_leave";
+            }
+
+            // Validate end date is not before start date
+            if (leaveRequest.getEndDate().isBefore(leaveRequest.getStartDate())) {
+                model.addAttribute("error", "End date cannot be before start date");
+                model.addAttribute("employee", employee);
+                model.addAttribute("leaveRequest", leaveRequest);
+                return "employee/apply_leave";
+            }
+
+            // Set employee and status
+            leaveRequest.setEmployee(employee);
+            leaveRequest.setStatus("PENDING");
+
+            // Save leave request
+            leaveRequestService.createLeaveRequest(leaveRequest);
+
+            return "redirect:/employee/leaves?success=Leave applied successfully! It will be reviewed by HR.";
+
+        } catch (Exception e) {
+            return "redirect:/employee/leaves?error=Could not apply leave. Please try again.";
+        }
     }
 }
