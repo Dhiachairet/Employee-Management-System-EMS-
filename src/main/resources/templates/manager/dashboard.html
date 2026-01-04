@@ -6,161 +6,422 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+            min-height: 100vh;
+        }
+        .logo {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+        .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+        .logo .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 15px 25px;
+            margin: 2px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+        .nav-link i {
+            width: 25px;
+            font-size: 1.1rem;
+        }
         .stat-card {
             border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            background: white;
+            overflow: hidden;
+            position: relative;
         }
         .stat-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
         }
-        .team-member-row {
-            transition: all 0.3s;
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
         }
-        .team-member-row:hover {
+        .stat-card.team-card::before {
+            background: var(--secondary-color);
+        }
+        .stat-card.leave-card::before {
+            background: #f39c12;
+        }
+        .stat-card.dept-card::before {
+            background: var(--accent-color);
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .team-table {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .team-table th {
             background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 18px 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .team-table td {
+            border-color: #f1f1f1;
+            padding: 16px 20px;
+            vertical-align: middle;
+        }
+        .team-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .welcome-card {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
+        }
+        .badge-custom {
+            background: var(--accent-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .activity-item {
+            border-left: 3px solid var(--secondary-color);
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .activity-item.completed {
+            border-left-color: var(--accent-color);
+        }
+        .activity-item.pending {
+            border-left-color: #f39c12;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .main-content {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/manager/dashboard}">Manager Portal</a>
-        <div class="navbar-text text-light ms-auto me-3">
-            Welcome, <span th:text="${manager != null} ? ${manager.email} : 'User'"></span>
-        </div>
-        <form th:action="@{/logout}" method="post">
-            <button type="submit" class="btn btn-light">Logout</button>
-        </form>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+        <h4><i class="bi bi-person-badge me-2"></i>EMS Manager</h4>
+        <div class="subtitle">Employee Management System</div>
     </div>
-</nav>
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/manager/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/team}">
+                <i class="bi bi-people-fill"></i> My Team
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/leaves}">
+                <i class="bi bi-calendar-check"></i> Team Leaves
+            </a>
+        </li>
 
-<div class="container mt-4">
-    <h2><i class="bi bi-person-badge"></i> Manager Dashboard</h2>
+        <li class="nav-item">
+            <form th:action="@{/logout}" method="post" class="nav-link">
+                <button type="submit" class="btn btn-link text-white p-0 border-0 text-start w-100">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 
-    <!-- Messages -->
-    <div th:if="${error}" class="alert alert-danger mt-3">
-        <span th:text="${error}"></span>
-    </div>
-
-    <!-- Welcome Message -->
-    <div th:if="${manager != null}" class="alert alert-info">
-        <h5>Welcome, <span th:text="${manager.email.split('@')[0]}"></span>!</h5>
-        <p class="mb-0" th:if="${manager.department != null}">
-            You are managing the <strong th:text="${manager.department.name}"></strong> department.
-        </p>
-        <p class="mb-0" th:if="${manager.department == null}">
-            You are not assigned to any department yet.
-        </p>
-    </div>
-
-    <!-- Stats -->
-    <div class="row mt-4">
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card border-primary">
-                <div class="card-body text-center">
-                    <i class="bi bi-people fs-1 text-primary mb-2"></i>
-                    <h3 th:text="${teamSize != null} ? ${teamSize} : 0">0</h3>
-                    <p class="text-muted mb-0">Team Members</p>
-                    <a th:href="@{/manager/team}" class="btn btn-sm btn-primary mt-2">View Team</a>
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Welcome Header -->
+    <div class="welcome-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-3">Welcome, <span th:text="${manager != null} ? ${manager.email.split('@')[0]} : 'Manager'"></span>!</h3>
+                <div class="d-flex align-items-center">
+                    <div class="avatar me-3">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <div>
+                        <p class="mb-1">
+                            <i class="bi bi-building me-2"></i>
+                            <strong th:text="${manager.department != null} ? ${manager.department.name} : 'Not assigned to department'"></strong>
+                        </p>
+                        <p class="mb-0">
+                            <i class="bi bi-briefcase me-2"></i>
+                            <span th:text="${manager.position != null} ? ${manager.position} : 'Manager'"></span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="bg-white text-dark rounded p-3 d-inline-block">
+                    <small class="text-muted d-block">Today's Date</small>
+                    <strong id="currentDate"></strong>
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card border-warning">
-                <div class="card-body text-center">
-                    <i class="bi bi-clock-history fs-1 text-warning mb-2"></i>
-                    <h3 th:text="${pendingLeavesCount != null} ? ${pendingLeavesCount} : 0">0</h3>
-                    <p class="text-muted mb-0">Pending Leaves</p>
-                    <a th:href="@{/manager/leaves}" class="btn btn-sm btn-warning mt-2">Review</a>
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stat-card team-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(52, 152, 219, 0.1); color: var(--secondary-color);">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${teamSize != null} ? ${teamSize} : 0">0</h2>
+                        <p class="text-muted mb-2">Team Members</p>
+                    </div>
+                    <i class="bi bi-arrow-right-circle fs-3" style="color: var(--secondary-color); opacity: 0.3;"></i>
                 </div>
+                <a th:href="@{/manager/team}" class="stretched-link"></a>
             </div>
         </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card stat-card border-success">
-                <div class="card-body text-center">
-                    <i class="bi bi-building fs-1 text-success mb-2"></i>
-                    <h5 th:text="${manager.department != null} ? ${manager.department.name} : 'No Dept'"></h5>
-                    <p class="text-muted mb-0">Your Department</p>
-                    <small th:text="${manager.position != null} ? ${manager.position} : 'Manager'"></small>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stat-card leave-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(243, 156, 18, 0.1); color: #f39c12;">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${pendingLeavesCount != null} ? ${pendingLeavesCount} : 0">0</h2>
+                        <p class="text-muted mb-2">Pending Leaves</p>
+                    </div>
+                    <i class="bi bi-calendar-check fs-3" style="color: #f39c12; opacity: 0.3;"></i>
+                </div>
+                <a th:href="@{/manager/leaves}" class="stretched-link"></a>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="stat-card dept-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(46, 204, 113, 0.1); color: var(--accent-color);">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <h5 class="mt-3 mb-2" th:text="${manager.department != null} ? ${manager.department.name} : 'No Department'"></h5>
+                        <p class="text-muted mb-2">Your Department</p>
+                    </div>
+                    <i class="bi bi-diagram-3 fs-3" style="color: var(--accent-color); opacity: 0.3;"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Team Members Preview -->
-    <div class="card mt-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-people"></i> My Team Members</h5>
-            <span class="badge bg-light text-dark" th:text="'Total: ' + ${teamSize}"></span>
-        </div>
-        <div class="card-body">
-            <div th:if="${teamMembers != null and not teamMembers.isEmpty()}">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Position</th>
-                            <th>Phone</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="member : ${teamMembers}" class="team-member-row">
-                            <td th:text="${member.email.split('@')[0]}"></td>
-                            <td th:text="${member.email}"></td>
-                            <td th:text="${member.position != null} ? ${member.position} : 'Not set'"></td>
-                            <td th:text="${member.phone != null} ? ${member.phone} : 'N/A'"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="text-center mt-3">
-                    <a th:href="@{/manager/team}" class="btn btn-primary">
-                        View All Team Members <i class="bi bi-arrow-right"></i>
-                    </a>
-                </div>
+    <div class="team-table p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-1"><i class="bi bi-people-fill me-2" style="color: var(--secondary-color);"></i> Team Overview</h5>
+                <p class="text-muted mb-0">Your direct reports in <strong th:text="${manager.department != null} ? ${manager.department.name} : 'your department'"></strong></p>
             </div>
-            <div th:if="${teamMembers == null or teamMembers.isEmpty()}" class="text-center py-4">
+            <a th:href="@{/manager/team}" class="btn btn-primary">
+                <i class="bi bi-eye me-1"></i> View All Team
+            </a>
+        </div>
+
+        <div th:if="${teamMembers != null and not teamMembers.isEmpty()}">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>Team Member</th>
+                        <th>Position</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="member : ${teamMembers}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-3">
+                                    <span th:text="${member.email.split('@')[0].substring(0,1).toUpperCase()}"></span>
+                                </div>
+                                <div>
+                                    <strong th:text="${member.email.split('@')[0]}"></strong>
+                                    <br>
+                                    <small th:text="${member.email}" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark p-2" th:text="${member.position != null} ? ${member.position} : 'Not set'"></span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-telephone me-2 text-muted"></i>
+                                <span th:text="${member.phone != null} ? ${member.phone} : 'N/A'"></span>
+                            </div>
+                        </td>
+                        <td>
+                                    <span class="badge-custom">
+                                        <i class="bi bi-check-circle me-1"></i> Active
+                                    </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div th:if="${teamMembers == null or teamMembers.isEmpty()}" class="text-center py-5">
+            <div class="py-4">
                 <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-                <h5 class="text-muted">No team members</h5>
-                <p class="text-muted" th:if="${manager.department == null}">
-                    You are not assigned to any department. Please contact HR.
+                <h5 class="text-muted mb-3">No team members found</h5>
+                <p class="text-muted mb-4" th:if="${manager.department == null}">
+                    You are not currently assigned to any department.
                 </p>
-                <p class="text-muted" th:if="${manager.department != null}">
+                <p class="text-muted mb-4" th:if="${manager.department != null}">
                     No team members are assigned to your department yet.
                 </p>
             </div>
         </div>
     </div>
 
-    <!-- Quick Links -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0">Quick Actions</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-2">
-                    <a th:href="@{/manager/team}" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-people"></i> View Full Team
-                    </a>
+    <!-- Activity Section -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="team-table p-4">
+                <h5 class="mb-4"><i class="bi bi-activity me-2" style="color: var(--secondary-color);"></i> Recent Activities</h5>
+                <div class="activity-item completed">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">Team Management</h6>
+                        <small class="text-muted">Today</small>
+                    </div>
+                    <p class="mb-1">Managing <strong th:text="${teamSize != null} ? ${teamSize} : 0"></strong> team members in your department</p>
                 </div>
-                <div class="col-md-4 mb-2">
-                    <a th:href="@{/manager/leaves}" class="btn btn-outline-warning w-100">
-                        <i class="bi bi-calendar-check"></i> Manage Leaves
-                    </a>
+                <div class="activity-item pending">
+                    <div class="d-flex justify-content-between">
+                        <h6 class="mb-1">Leave Requests</h6>
+                        <small class="text-muted">Ongoing</small>
+                    </div>
+                    <p class="mb-1" th:text="${pendingLeavesCount != null and pendingLeavesCount > 0} ?
+                            'You have ' + ${pendingLeavesCount} + ' pending leave requests to review' :
+                            'All leave requests are processed'"></p>
                 </div>
 
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="team-table p-4">
+                <h5 class="mb-4"><i class="bi bi-lightning me-2" style="color: var(--accent-color);"></i> Quick Actions</h5>
+                <div class="d-grid gap-3">
+                    <a th:href="@{/manager/team}" class="btn btn-outline-primary">
+                        <i class="bi bi-people me-2"></i> View Team
+                    </a>
+                    <a th:href="@{/manager/leaves}" class="btn btn-outline-warning">
+                        <i class="bi bi-calendar-check me-2"></i> Review Leaves
+                    </a>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Set current date
+    const now = new Date();
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+
+    // Add active class to current nav item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    });
+</script>
 </body>
 </html>

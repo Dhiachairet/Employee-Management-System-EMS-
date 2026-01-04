@@ -2,169 +2,572 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Team Leaves - Manager</title>
+    <title>Team Leaves - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+            min-height: 100vh;
+        }
+        .logo {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+        .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+        .logo .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 15px 25px;
+            margin: 2px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+        .nav-link i {
+            width: 25px;
+            font-size: 1.1rem;
+        }
+        .header-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
         .leave-row {
             transition: all 0.3s;
+            border-left: 4px solid transparent;
         }
         .leave-row:hover {
             background-color: #f8f9fa;
+            border-left: 4px solid var(--secondary-color);
+        }
+        /* SMALLER STATUS BADGES */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
         }
         .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(243, 156, 18, 0.2);
         }
         .status-approved {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--accent-color);
+            border: 1px solid rgba(46, 204, 113, 0.2);
         }
         .status-rejected {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(231, 76, 60, 0.2);
+        }
+        .leave-type-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .leave-type-sick {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+        .leave-type-vacation {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--accent-color);
+        }
+        .leave-type-other {
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+        }
+        .stat-card {
+            border: none;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-card.total {
+            border-left: 4px solid var(--secondary-color);
+        }
+        .stat-card.pending {
+            border-left: 4px solid var(--warning-color);
+        }
+        .stat-card.approved {
+            border-left: 4px solid var(--accent-color);
+        }
+        .stat-card.rejected {
+            border-left: 4px solid var(--danger-color);
+        }
+        .employee-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .table-custom {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .table-custom th {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 15px 20px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 0.9rem;
+        }
+        .table-custom td {
+            border-color: #f1f1f1;
+            padding: 12px 20px;
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+        .action-buttons {
+            min-width: 100px;
+        }
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        .info-banner {
+            background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(52, 152, 219, 0.05));
+            border-left: 4px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .duration-badge {
+            background: #f8f9fa;
+            color: var(--dark-color);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .action-buttons {
+                min-width: auto;
+            }
         }
     </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/manager/dashboard}">Manager Portal</a>
-        <a th:href="@{/manager/dashboard}" class="btn btn-light">Back to Dashboard</a>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+        <h4><i class="bi bi-person-badge me-2"></i>EMS Manager</h4>
+        <div class="subtitle">Employee Management System</div>
     </div>
-</nav>
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/team}">
+                <i class="bi bi-people-fill"></i> My Team
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/manager/leaves}">
+                <i class="bi bi-calendar-check"></i> Team Leaves
+            </a>
+        </li>
+        <li class="nav-item mt-4">
+            <form th:action="@{/logout}" method="post" class="nav-link">
+                <button type="submit" class="btn btn-link text-white p-0 border-0 text-start w-100">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 
-<div class="container mt-4">
-    <h2><i class="bi bi-calendar-check"></i> Team Leave Requests</h2>
+<!-- Main Content -->
+<div class="main-content">
+
+
+    <!-- Info Banner -->
+    <div class="info-banner">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-info-circle fs-4 me-3" style="color: var(--secondary-color);"></i>
+            <div>
+                <h6 class="mb-1">Managing Team Leaves</h6>
+                <p class="mb-0">You can approve or reject leave requests from team members in your department only.</p>
+            </div>
+        </div>
+    </div>
 
     <!-- Messages -->
-    <div th:if="${param.success}" class="alert alert-success mt-3">
+    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show mb-4">
+        <i class="bi bi-check-circle me-2"></i>
         <span th:text="${param.success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div th:if="${error}" class="alert alert-danger mt-3">
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
         <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Department Info -->
-    <div class="alert alert-info">
-        <h5>Managing Leaves for Your Team</h5>
-        <p class="mb-0">You can approve or reject leave requests from your team members only.</p>
-    </div>
-
-    <!-- Team Leaves Table -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0">Team Leave Requests</h5>
-        </div>
-        <div class="card-body">
-            <div th:if="${teamLeaves != null and not teamLeaves.isEmpty()}">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Leave Type</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Duration (Days)</th>
-                            <th>Reason</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="leave : ${teamLeaves}" class="leave-row">
-                            <td th:text="${leave.employee != null} ? ${leave.employee.email} : 'N/A'"></td>
-                            <td th:text="${leave.leaveType}"></td>
-                            <td th:text="${#temporals.format(leave.startDate, 'dd/MM/yyyy')}"></td>
-                            <td th:text="${#temporals.format(leave.endDate, 'dd/MM/yyyy')}"></td>
-                            <td th:text="${leave.calculateDays()}"></td>
-                            <td>
-                                <small th:text="${leave.reason}" class="text-muted"></small>
-                            </td>
-                            <td>
-                                <span th:if="${leave.status == 'PENDING'}" class="status-pending">
-                                    PENDING
-                                </span>
-                                <span th:if="${leave.status == 'APPROVED'}" class="status-approved">
-                                    APPROVED
-                                </span>
-                                <span th:if="${leave.status == 'REJECTED'}" class="status-rejected">
-                                    REJECTED
-                                </span>
-                            </td>
-                            <td>
-                                <div th:if="${leave.status == 'PENDING'}" class="btn-group btn-group-sm" role="group">
-                                    <form th:action="@{/manager/leaves/approve/{id}(id=${leave.id})}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            Approve
-                                        </button>
-                                    </form>
-                                    <form th:action="@{/manager/leaves/reject/{id}(id=${leave.id})}" method="post" class="d-inline">
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            Reject
-                                        </button>
-                                    </form>
-                                </div>
-                                <div th:if="${leave.status != 'PENDING'}">
-                                    <span class="text-muted">Processed</span>
-                                </div>
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Simple Leave Statistics -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6>Leave Statistics</h6>
-                                <div class="row text-center">
-                                    <div class="col-md-3">
-                                        <h4 th:text="${teamLeaves.size()}">0</h4>
-                                        <small class="text-muted">Total Leaves</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <h4>--</h4>
-                                        <small class="text-muted">Pending</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <h4>--</h4>
-                                        <small class="text-muted">Approved</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <h4>--</h4>
-                                        <small class="text-muted">Rejected</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Leave Statistics - SIMPLIFIED WITHOUT COMPLEX FILTERING -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card total">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-calendar-week fs-2" style="color: var(--secondary-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h3 class="mb-1" th:text="${teamLeaves != null} ? ${teamLeaves.size()} : 0">0</h3>
+                        <p class="text-muted mb-0">Total Requests</p>
                     </div>
                 </div>
             </div>
-            <div th:if="${teamLeaves == null or teamLeaves.isEmpty()}" class="text-center py-4">
-                <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
-                <h5 class="text-muted">No leave requests found</h5>
-                <p class="text-muted">Your team hasn't applied for any leaves yet.</p>
-                <a th:href="@{/manager/dashboard}" class="btn btn-primary mt-2">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card pending">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-clock-history fs-2" style="color: var(--warning-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h3 class="mb-1">0</h3>
+                        <p class="text-muted mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card approved">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-check-circle fs-2" style="color: var(--accent-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h3 class="mb-1">0</h3>
+                        <p class="text-muted mb-0">Approved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card rejected">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-x-circle fs-2" style="color: var(--danger-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h3 class="mb-1">0</h3>
+                        <p class="text-muted mb-0">Rejected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaves Table -->
+    <div class="content-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-1"><i class="bi bi-list-ul me-2"></i> Team Leave Requests</h5>
+                <p class="text-muted mb-0" th:text="${teamLeaves != null} ? 'Showing ' + ${teamLeaves.size()} + ' leave requests' : 'No leave requests'"></p>
+            </div>
+            <div class="d-flex align-items-center">
+                    <span class="badge bg-primary fs-6 px-3 py-2">
+                        <i class="bi bi-calendar me-1"></i>
+                        <span th:text="${teamLeaves != null} ? ${teamLeaves.size()} : 0"></span> Requests
+                    </span>
+            </div>
+        </div>
+
+        <div th:if="${teamLeaves != null and not teamLeaves.isEmpty()}">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom">
+                    <thead>
+                    <tr>
+                        <th style="width: 20%;">Employee</th>
+                        <th style="width: 15%;">Leave Type</th>
+                        <th style="width: 15%;">Date Range</th>
+                        <th style="width: 10%;">Duration</th>
+                        <th style="width: 20%;">Reason</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 10%;">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="leave : ${teamLeaves}" class="leave-row">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="employee-avatar me-3">
+                                    <span th:text="${leave.employee != null ? leave.employee.email.split('@')[0].substring(0,1).toUpperCase() : 'U'}"></span>
+                                </div>
+                                <div>
+                                    <strong th:text="${leave.employee != null ? leave.employee.email.split('@')[0] : 'Unknown'}"></strong>
+                                    <br>
+                                    <small th:text="${leave.employee != null ? leave.employee.email : 'N/A'}" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                                    <span th:if="${leave.leaveType == 'SICK'}" class="leave-type-badge leave-type-sick">
+                                        <i class="bi bi-heart-pulse me-1"></i> SICK
+                                    </span>
+                            <span th:if="${leave.leaveType == 'VACATION'}" class="leave-type-badge leave-type-vacation">
+                                        <i class="bi bi-umbrella me-1"></i> VACATION
+                                    </span>
+                            <span th:if="${leave.leaveType != 'SICK' and leave.leaveType != 'VACATION'}" class="leave-type-badge leave-type-other">
+                                        <i class="bi bi-calendar me-1"></i> <span th:text="${leave.leaveType}"></span>
+                                    </span>
+                        </td>
+                        <td>
+                            <div>
+                                <small class="text-muted d-block">From</small>
+                                <span th:text="${#temporals.format(leave.startDate, 'dd MMM')}"></span>
+                            </div>
+                            <div class="mt-1">
+                                <small class="text-muted d-block">To</small>
+                                <span th:text="${#temporals.format(leave.endDate, 'dd MMM')}"></span>
+                            </div>
+                        </td>
+                        <td>
+                                    <span class="duration-badge">
+                                        <span th:text="${leave.calculateDays()}"></span> days
+                                    </span>
+                        </td>
+                        <td>
+                            <small th:text="${leave.reason}" class="text-muted"></small>
+                        </td>
+                        <td>
+                            <!-- SMALLER STATUS BADGES -->
+                            <span th:if="${leave.status == 'PENDING'}" class="status-badge status-pending">
+                                        PENDING
+                                    </span>
+                            <span th:if="${leave.status == 'APPROVED'}" class="status-badge status-approved">
+                                        APPROVED
+                                    </span>
+                            <span th:if="${leave.status == 'REJECTED'}" class="status-badge status-rejected">
+                                        REJECTED
+                                    </span>
+                        </td>
+                        <td class="action-buttons">
+                            <div th:if="${leave.status == 'PENDING'}" class="d-flex gap-1">
+                                <form th:action="@{/manager/leaves/approve/{id}(id=${leave.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Approve">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </form>
+                                <form th:action="@{/manager/leaves/reject/{id}(id=${leave.id})}" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Reject">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div th:if="${leave.status != 'PENDING'}">
+                                <small class="text-muted">Processed</small>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div th:if="${teamLeaves == null or teamLeaves.isEmpty()}" class="empty-state">
+            <i class="bi bi-calendar-x empty-state-icon"></i>
+            <h4 class="text-muted mb-3">No Leave Requests Found</h4>
+            <p class="text-muted mb-4">
+                Your team hasn't submitted any leave requests yet.<br>
+                Leave requests from your team members will appear here.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a th:href="@{/manager/dashboard}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
                 </a>
+                <a th:href="@{/manager/team}" class="btn btn-outline-primary">
+                    <i class="bi bi-people me-1"></i> View Team
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Summary -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="content-card">
+                <h6 class="mb-3"><i class="bi bi-bar-chart me-2" style="color: var(--secondary-color);"></i> Quick Stats Summary</h6>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="fs-4 fw-bold" style="color: var(--secondary-color);" th:text="${teamLeaves != null} ? ${teamLeaves.size()} : 0">0</div>
+                            <small class="text-muted">Total Requests</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="fs-4 fw-bold" style="color: var(--warning-color);">0</div>
+                            <small class="text-muted">Awaiting Review</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="fs-4 fw-bold" style="color: var(--accent-color);">0</div>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <div class="fs-4 fw-bold" style="color: var(--danger-color);">0</div>
+                            <small class="text-muted">Rejected</small>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Add active class to current nav item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        // Add confirmation for approve/reject actions
+        document.querySelectorAll('form[action*="/approve/"] button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to approve this leave request?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        document.querySelectorAll('form[action*="/reject/"] button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to reject this leave request?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Count statuses with JavaScript
+        const countStatuses = () => {
+            const pendingElements = document.querySelectorAll('.status-pending');
+            const approvedElements = document.querySelectorAll('.status-approved');
+            const rejectedElements = document.querySelectorAll('.status-rejected');
+
+            // Update statistics
+            document.querySelectorAll('.stat-card.pending h3').forEach(el => {
+                el.textContent = pendingElements.length;
+            });
+            document.querySelectorAll('.stat-card.approved h3').forEach(el => {
+                el.textContent = approvedElements.length;
+            });
+            document.querySelectorAll('.stat-card.rejected h3').forEach(el => {
+                el.textContent = rejectedElements.length;
+            });
+
+            // Update quick stats
+            document.querySelectorAll('.row .col-md-3:nth-child(2) .fw-bold').forEach(el => {
+                el.textContent = pendingElements.length;
+            });
+            document.querySelectorAll('.row .col-md-3:nth-child(3) .fw-bold').forEach(el => {
+                el.textContent = approvedElements.length;
+            });
+            document.querySelectorAll('.row .col-md-3:nth-child(4) .fw-bold').forEach(el => {
+                el.textContent = rejectedElements.length;
+            });
+        };
+
+        // Count statuses on page load
+        countStatuses();
+    });
+</script>
 </body>
 </html>

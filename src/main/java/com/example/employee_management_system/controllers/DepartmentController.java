@@ -33,7 +33,7 @@ public class DepartmentController {
     @PostMapping("/save")
     public String saveDepartment(@ModelAttribute("department") Department department) {
         departmentService.createDepartment(department);
-        return "redirect:/departments/all";
+        return "redirect:/admin/departments";
     }
 
     @GetMapping("/edit/{id}")
@@ -47,12 +47,27 @@ public class DepartmentController {
     public String updateDepartment(@PathVariable("id") Long id, @ModelAttribute("department") Department department) {
         department.setId(id);
         departmentService.updateDepartment(department);
-        return "redirect:/departments/all";
+        return "redirect:/admin/departments";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteDepartment(@PathVariable("id") Long id) {
-        departmentService.deleteDepartment(id);
-        return "redirect:/departments/all";
+        try {
+            departmentService.deleteDepartment(id);
+            return "redirect:/admin/departments?success=Department deleted successfully";
+        } catch (RuntimeException e) {
+            // Handle the exception by redirecting with an error message
+            return "redirect:/admin/departments?error=" + encodeErrorMessage(e.getMessage());
+        }
+    }
+
+    // Helper method to encode error messages for URL
+    private String encodeErrorMessage(String message) {
+        if (message == null) return "";
+        return message.replace(" ", "%20")
+                .replace("[", "%5B")
+                .replace("]", "%5D")
+                .replace("(", "%28")
+                .replace(")", "%29");
     }
 }

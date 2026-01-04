@@ -2,9 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>My Leaves - EMS</title>
+    <title>Leave Reports - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -76,6 +77,10 @@
             overflow: hidden;
             position: relative;
         }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
         .stat-card::before {
             content: '';
             position: absolute;
@@ -95,6 +100,16 @@
         }
         .stat-card.rejected-card::before {
             background: #e74c3c;
+        }
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
         }
         .table-card {
             background: white;
@@ -118,10 +133,11 @@
         .table-card tr:hover {
             background-color: #f8f9fa;
         }
+        /* Smaller status badges */
         .status-badge {
-            padding: 5px 12px;
+            padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             font-weight: 500;
         }
         .status-pending {
@@ -139,10 +155,41 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        .days-badge {
-            font-size: 1.1rem;
-            font-weight: bold;
-            padding: 8px 15px;
+        /* Smaller type badges */
+        .type-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .badge-sick {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .badge-vacation {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .badge-personal {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .badge-other {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        .avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
         }
         @media (max-width: 992px) {
             .sidebar {
@@ -161,23 +208,28 @@
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="logo">
-        <h4><i class="bi bi-person-badge me-2"></i>Employee Portal</h4>
-        <div class="subtitle">Employee Management System</div>
+        <h4><i class="bi bi-shield-lock me-2"></i>EMS Admin Portal</h4>
+        <div class="subtitle">System Administration Dashboard</div>
     </div>
     <ul class="nav flex-column mt-4">
         <li class="nav-item">
-            <a class="nav-link" th:href="@{/employee/dashboard}">
+            <a class="nav-link" th:href="@{/admin/dashboard}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" th:href="@{/employee/profile}">
-                <i class="bi bi-person-circle"></i> My Profile
+            <a class="nav-link" th:href="@{/admin/employees}">
+                <i class="bi bi-people-fill"></i> Manage Employees
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link active" th:href="@{/employee/leaves}">
-                <i class="bi bi-calendar-check"></i> My Leaves
+            <a class="nav-link" th:href="@{/admin/departments}">
+                <i class="bi bi-building"></i> Manage Departments
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/admin/reports}">
+                <i class="bi bi-graph-up"></i> View Reports
             </a>
         </li>
         <li class="nav-item">
@@ -195,103 +247,140 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3><i class="bi bi-calendar-check me-2" style="color: var(--secondary-color);"></i> My Leave Requests</h3>
-            <p class="text-muted mb-0">View and manage your leave applications</p>
+            <h3><i class="bi bi-graph-up me-2" style="color: var(--secondary-color);"></i> Leave Reports & Analytics</h3>
+            <p class="text-muted mb-0">Comprehensive overview of all employee leaves</p>
         </div>
-        <a th:href="@{/employee/leaves/apply}" class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i> Apply for Leave
-        </a>
+
     </div>
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card total-card p-4 text-center">
-                <i class="bi bi-calendar-check fs-1 text-primary mb-3"></i>
-                <h3 class="mb-2" th:text="${totalLeaves != null} ? ${totalLeaves} : 0">0</h3>
-                <p class="text-muted mb-0">Total Leaves</p>
+            <div class="stat-card total-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(52, 152, 219, 0.1); color: var(--secondary-color);">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${totalLeaves != null} ? ${totalLeaves} : 0">0</h2>
+                        <p class="text-muted mb-2">Total Leaves</p>
+                    </div>
+                    <i class="bi bi-calendar fs-3" style="color: var(--secondary-color); opacity: 0.3;"></i>
+                </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card approved-card p-4 text-center">
-                <i class="bi bi-check-circle fs-1 text-success mb-3"></i>
-                <h3 class="mb-2" th:text="${approvedLeaves != null} ? ${approvedLeaves} : 0">0</h3>
-                <p class="text-muted mb-0">Approved</p>
+            <div class="stat-card approved-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(46, 204, 113, 0.1); color: var(--accent-color);">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${approvedLeaves != null} ? ${approvedLeaves} : 0">0</h2>
+                        <p class="text-muted mb-2">Approved</p>
+                    </div>
+                    <i class="bi bi-check-circle fs-3" style="color: var(--accent-color); opacity: 0.3;"></i>
+                </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card pending-card p-4 text-center">
-                <i class="bi bi-clock-history fs-1 text-warning mb-3"></i>
-                <h3 class="mb-2" th:text="${pendingLeaves != null} ? ${pendingLeaves} : 0">0</h3>
-                <p class="text-muted mb-0">Pending</p>
+            <div class="stat-card pending-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(243, 156, 18, 0.1); color: var(--warning-color);">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${pendingLeaves != null} ? ${pendingLeaves} : 0">0</h2>
+                        <p class="text-muted mb-2">Pending</p>
+                    </div>
+                    <i class="bi bi-clock fs-3" style="color: var(--warning-color); opacity: 0.3;"></i>
+                </div>
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-4">
-            <div class="stat-card rejected-card p-4 text-center">
-                <i class="bi bi-x-circle fs-1 text-danger mb-3"></i>
-                <h3 class="mb-2" th:text="${rejectedLeaves != null} ? ${rejectedLeaves} : 0">0</h3>
-                <p class="text-muted mb-0">Rejected</p>
+            <div class="stat-card rejected-card p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-icon" style="background-color: rgba(231, 76, 60, 0.1); color: #e74c3c;">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <h2 class="mt-3 mb-2" th:text="${rejectedLeaves != null} ? ${rejectedLeaves} : 0">0</h2>
+                        <p class="text-muted mb-2">Rejected</p>
+                    </div>
+                    <i class="bi bi-x-circle fs-3" style="color: #e74c3c; opacity: 0.3;"></i>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Messages -->
-    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        <span th:text="${param.success}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        <span th:text="${param.error}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
 
-    <!-- Leaves Table -->
+    <!-- All Leaves Table -->
     <div class="table-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h5 class="mb-1"><i class="bi bi-list-ul me-2" style="color: var(--secondary-color);"></i> Leave History</h5>
-                <p class="text-muted mb-0" th:if="${leaveRequests != null}">
-                    Showing <strong th:text="${leaveRequests.size()}"></strong> leave requests
+                <h5 class="mb-1"><i class="bi bi-list-ul me-2" style="color: var(--primary-color);"></i> All Leave Requests</h5>
+                <p class="text-muted mb-0" th:if="${allLeaves != null}">
+                    Showing <strong th:text="${allLeaves.size()}"></strong> leave requests
                 </p>
             </div>
-            <a th:href="@{/employee/dashboard}" class="btn btn-outline-primary">
-                <i class="bi bi-speedometer2 me-1"></i> Dashboard
-            </a>
         </div>
 
-        <div th:if="${leaveRequests != null and !leaveRequests.isEmpty()}">
+        <div th:if="${allLeaves != null and not allLeaves.isEmpty()}">
             <div class="table-responsive">
                 <table class="table table-hover">
                     <thead>
                     <tr>
+                        <th>Employee</th>
+                        <th>Department</th>
                         <th>Leave Type</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Duration</th>
                         <th>Reason</th>
                         <th>Status</th>
-                        <th>Applied On</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="leave : ${leaveRequests}">
+                    <tr th:each="leave : ${allLeaves}">
                         <td>
-                            <span th:if="${leave.leaveType == 'SICK'}">
-                                <i class="bi bi-heart-pulse text-danger me-1"></i> SICK
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-3">
+                                    <span th:text="${leave.employee != null ? leave.employee.email.split('@')[0].substring(0,1).toUpperCase() : '?'}"></span>
+                                </div>
+                                <div>
+                                    <strong th:text="${leave.employee != null ? leave.employee.email.split('@')[0] : 'N/A'}"></strong>
+                                    <br>
+                                    <small th:text="${leave.employee != null ? leave.employee.position : 'N/A'}" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:if="${leave.employee != null and leave.employee.department != null}"
+                                  class="badge bg-secondary">
+                                <span th:text="${leave.employee.department.name}"></span>
                             </span>
-                            <span th:if="${leave.leaveType == 'VACATION'}">
-                                <i class="bi bi-umbrella text-success me-1"></i> VACATION
+                            <span th:if="${leave.employee == null or leave.employee.department == null}"
+                                  class="text-muted">N/A</span>
+                        </td>
+                        <td>
+                            <span th:if="${leave.leaveType == 'SICK'}" class="type-badge badge-sick">
+                                <i class="bi bi-heart-pulse me-1"></i> SICK
                             </span>
-                            <span th:if="${leave.leaveType != 'SICK' and leave.leaveType != 'VACATION'}">
-                                <i class="bi bi-calendar text-primary me-1"></i> <span th:text="${leave.leaveType}"></span>
+                            <span th:if="${leave.leaveType == 'VACATION'}" class="type-badge badge-vacation">
+                                <i class="bi bi-umbrella me-1"></i> VACATION
+                            </span>
+                            <span th:if="${leave.leaveType == 'PERSONAL'}" class="type-badge badge-personal">
+                                <i class="bi bi-person me-1"></i> PERSONAL
+                            </span>
+                            <span th:if="${leave.leaveType != 'SICK' and leave.leaveType != 'VACATION' and leave.leaveType != 'PERSONAL'}"
+                                  class="type-badge badge-other">
+                                <i class="bi bi-calendar me-1"></i> <span th:text="${leave.leaveType}"></span>
                             </span>
                         </td>
                         <td th:text="${#temporals.format(leave.startDate, 'dd MMM yyyy')}"></td>
                         <td th:text="${#temporals.format(leave.endDate, 'dd MMM yyyy')}"></td>
                         <td>
-                            <span class="badge bg-info days-badge">
+                            <span class="badge bg-info">
                                 <span th:text="${leave.calculateDays()}"></span> days
                             </span>
                         </td>
@@ -309,67 +398,19 @@
                                 <i class="bi bi-x-circle me-1"></i> REJECTED
                             </span>
                         </td>
-                        <td th:text="${#temporals.format(leave.startDate, 'dd MMM yyyy')}"></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        <div th:if="${leaveRequests == null or leaveRequests.isEmpty()}" class="text-center py-5">
+        <div th:if="${allLeaves == null or allLeaves.isEmpty()}" class="text-center py-5">
             <div class="py-4">
                 <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
                 <h5 class="text-muted mb-3">No leave requests found</h5>
-                <p class="text-muted mb-4">You haven't applied for any leaves yet.</p>
-                <a th:href="@{/employee/leaves/apply}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Apply for Your First Leave
-                </a>
+                <p class="text-muted mb-4">No employees have applied for leaves yet.</p>
             </div>
         </div>
     </div>
-
-    <!-- Leave Summary -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="table-card p-4 h-100">
-                <h5 class="mb-4"><i class="bi bi-pie-chart me-2" style="color: var(--accent-color);"></i> Leave Types Distribution</h5>
-                <ul class="list-group">
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <span><i class="bi bi-heart-pulse text-danger me-2"></i> Sick Leave</span>
-                        <span class="badge bg-danger rounded-pill">
-                            <span th:text="${sickLeaves != null} ? ${sickLeaves} : 0"></span>
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <span><i class="bi bi-umbrella text-success me-2"></i> Vacation</span>
-                        <span class="badge bg-success rounded-pill">
-                            <span th:text="${vacationLeaves != null} ? ${vacationLeaves} : 0"></span>
-                        </span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center border-0">
-                        <span><i class="bi bi-calendar text-primary me-2"></i> Other</span>
-                        <span class="badge bg-primary rounded-pill">
-                            <span th:text="${otherLeaves != null} ? ${otherLeaves} : 0"></span>
-                        </span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="table-card p-4 h-100">
-                <h5 class="mb-4"><i class="bi bi-info-circle me-2" style="color: var(--warning-color);"></i> Quick Tips</h5>
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Leave Application Guidelines:</strong>
-                    <ul class="mb-0 mt-2">
-                        <li>Apply for leaves at least 3 days in advance</li>
-                        <li>Contact HR for emergency leaves</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

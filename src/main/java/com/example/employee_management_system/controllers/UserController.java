@@ -6,12 +6,14 @@ import com.example.employee_management_system.entity.Department;
 import com.example.employee_management_system.entity.Employee;
 import com.example.employee_management_system.entity.User;
 import com.example.employee_management_system.repository.EmployeeRepository;
+import com.example.employee_management_system.repository.LeaveRequestRepository;
 import com.example.employee_management_system.repository.RoleRepository;
 import com.example.employee_management_system.service.DepartmentService;
 import com.example.employee_management_system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,9 @@ public class UserController {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private LeaveRequestRepository leaveRequestRepository; // Make sure this is injected
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -124,10 +129,10 @@ public class UserController {
             // Save Employee (which will also save User due to inheritance)
             employeeRepository.save(employee);
 
-            return "redirect:/users/all?success=User created successfully";
+            return "redirect:/admin/employees?success=User created successfully";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/users/add?error=Error creating user: " + e.getMessage();
+            return "redirect:/admin/employees?error=Error creating user: " + e.getMessage();
         }
     }
 
@@ -146,7 +151,7 @@ public class UserController {
                 model.addAttribute("user", user);
                 return "update_user";
             } else {
-                return "redirect:/users/all?error=User not found";
+                return "redirect:/admin/employees?error=User not found";
             }
         }
     }
@@ -185,27 +190,53 @@ public class UserController {
             }
 
             employeeRepository.save(existingEmployee);
-            return "redirect:/users/all?success=User updated successfully";
+            return "redirect:/admin/employees?success=User updated successfully";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/users/edit/" + id + "?error=Error updating user: " + e.getMessage();
+            return "redirect:/admin/employees/" + id + "?error=Error updating user: " + e.getMessage();
         }
     }
 
     @GetMapping("/delete/{id}")
+    @Transactional
     public String deleteUser(@PathVariable("id") Long id) {
         try {
             // First try to delete Employee (which will cascade to User due to inheritance)
             if (employeeRepository.existsById(id)) {
+                // Get the employee first to check if it exists
+                Employee employee = employeeRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+
+                // Delete all leave requests for this employee first
+                List<com.example.employee_management_system.entity.LeaveRequest> leaveRequests =
+                        leaveRequestRepository.findByEmployeeId(id);
+
+                if (!leaveRequests.isEmpty()) {
+                    leaveRequestRepository.deleteAll(leaveRequests);
+                }
+
+                // Now delete the employee
                 employeeRepository.deleteById(id);
             } else {
                 // If no Employee record, delete User
                 userService.deleteUser(id);
             }
-            return "redirect:/users/all?success=User deleted successfully";
+            return "redirect:/admin/employees?success=User deleted successfully";
         } catch (Exception e) {
             e.printStackTrace();
-            return "redirect:/users/all?error=Error deleting user: " + e.getMessage();
+            String errorMessage = "Error deleting user: " + e.getMessage();
+            return "redirect:/admin/employees?error=" + encodeUrlParameter(errorMessage);
         }
+    }
+
+    // Helper method to encode URL parameters
+    private String encodeUrlParameter(String param) {
+        return param.replace(" ", "%20")
+                .replace("[", "%5B")
+                .replace("]", "%5D")
+                .replace("(", "%28")
+                .replace(")", "%29")
+                .replace("{", "%7B")
+                .replace("}", "%7D");
     }
 }

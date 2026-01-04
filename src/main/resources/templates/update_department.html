@@ -4,40 +4,178 @@
     <meta charset="UTF-8">
     <title>Update Department - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+            min-height: 100vh;
+        }
+        .logo {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+        .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+        .logo .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 15px 25px;
+            margin: 2px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+        .nav-link i {
+            width: 25px;
+            font-size: 1.1rem;
+        }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        .form-card .card-header {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .form-card .card-body {
+            padding: 30px;
+        }
+        .required::after {
+            content: " *";
+            color: red;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">EMS Admin</a>
-        <a th:href="@{/admin/departments}" class="btn btn-light">Back to Departments</a>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+        <h4><i class="bi bi-shield-lock me-2"></i>EMS Admin Portal</h4>
+        <div class="subtitle">System Administration Dashboard</div>
     </div>
-</nav>
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/employees}">
+                <i class="bi bi-people-fill"></i> Manage Employees
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/departments}">
+                <i class="bi bi-building"></i> Manage Departments
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/admin/reports}">
+                <i class="bi bi-graph-up"></i> View Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <form th:action="@{/logout}" method="post" class="nav-link">
+                <button type="submit" class="btn btn-link text-white p-0 border-0 text-start w-100">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 
-<div class="container mt-4">
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h3><i class="bi bi-building me-2" style="color: var(--accent-color);"></i> Update Department</h3>
+        <p class="text-muted mb-0">Modify department information</p>
+    </div>
+
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
+        <div class="col-lg-8">
+            <div class="form-card">
                 <div class="card-header">
-                    <h3>Update Department</h3>
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i> Department Details</h5>
                 </div>
                 <div class="card-body">
                     <form th:action="@{/departments/update/{id}(id=${department.id})}"
                           th:object="${department}" method="post">
 
-                        <div class="mb-3">
-                            <label class="form-label">Department Name *</label>
-                            <input type="text" class="form-control" th:field="*{name}" required>
+                        <div class="mb-4">
+                            <label class="form-label required">Department Name</label>
+                            <input type="text" class="form-control" th:field="*{name}" required placeholder="e.g., Information Technology">
+                            <div class="form-text">Enter the official name of the department</div>
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">Description</label>
-                            <textarea class="form-control" th:field="*{description}" rows="3"></textarea>
+                            <textarea class="form-control" th:field="*{description}" rows="4" placeholder="Describe the department's purpose, responsibilities, etc."></textarea>
+                            <div class="form-text">Provide a brief description of the department's function</div>
                         </div>
 
                         <!-- Buttons -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a th:href="@{/admin/departments}" class="btn btn-secondary">Cancel</a>
-                            <button type="submit" class="btn btn-primary">Update Department</button>
+                        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                            <a th:href="@{/admin/departments}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-1"></i> Update Department
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -45,5 +183,20 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Add active class to current nav item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    });
+</script>
 </body>
 </html>

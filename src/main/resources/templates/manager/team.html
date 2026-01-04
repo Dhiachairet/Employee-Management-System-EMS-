@@ -2,105 +2,378 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>My Team - Manager</title>
+    <title>My Team - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #2ecc71;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 250px;
+            background: var(--primary-color);
+            color: white;
+            padding-top: 20px;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 25px;
+            min-height: 100vh;
+        }
+        .logo {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+        .logo h4 {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+        .logo .subtitle {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 15px 25px;
+            margin: 2px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: var(--secondary-color);
+            transform: translateX(5px);
+        }
+        .nav-link i {
+            width: 25px;
+            font-size: 1.1rem;
+        }
+        .header-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .department-badge {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 500;
+        }
+        .stat-card {
+            border: none;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        .stat-card.team-stat {
+            border-left: 4px solid var(--secondary-color);
+        }
+        .stat-card.dept-stat {
+            border-left: 4px solid var(--accent-color);
+        }
+        .table-custom {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .table-custom th {
+            background-color: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 18px 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .table-custom td {
+            border-color: #f1f1f1;
+            padding: 16px 20px;
+            vertical-align: middle;
+        }
+        .table-custom tr:hover {
+            background-color: #f8f9fa;
+        }
+        .badge-position {
+            background: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+        }
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                margin-bottom: 20px;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-info">
-    <div class="container-fluid">
-        <a class="navbar-brand" th:href="@{/manager/dashboard}">Manager Portal</a>
-        <a th:href="@{/manager/dashboard}" class="btn btn-light">Back to Dashboard</a>
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+        <h4><i class="bi bi-person-badge me-2"></i>EMS Manager</h4>
+        <div class="subtitle">Employee Management System</div>
     </div>
-</nav>
+    <ul class="nav flex-column mt-4">
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/dashboard}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" th:href="@{/manager/team}">
+                <i class="bi bi-people-fill"></i> My Team
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" th:href="@{/manager/leaves}">
+                <i class="bi bi-calendar-check"></i> Team Leaves
+            </a>
+        </li>
+        <li class="nav-item mt-4">
+            <form th:action="@{/logout}" method="post" class="nav-link">
+                <button type="submit" class="btn btn-link text-white p-0 border-0 text-start w-100">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 
-<div class="container mt-4">
-    <h2><i class="bi bi-people"></i> My Team</h2>
+<!-- Main Content -->
+<div class="main-content">
+
 
     <!-- Department Info -->
-    <div th:if="${department != null}" class="alert alert-info">
-        <h5>Department: <span th:text="${department.name}"></span></h5>
-        <p class="mb-0" th:text="${department.description != null} ? ${department.description} : 'No description available'"></p>
+    <div th:if="${department != null}" class="content-card mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="mb-2"><i class="bi bi-building me-2"></i> Department Information</h5>
+                <h4 class="mb-3" style="color: var(--secondary-color);" th:text="${department.name}"></h4>
+                <p class="mb-0 text-muted" th:text="${department.description != null} ? ${department.description} : 'No description available'"></p>
+            </div>
+            <div class="col-md-4 text-end">
+                    <span class="department-badge">
+                        <i class="bi bi-diagram-3 me-1"></i> Manager Department
+                    </span>
+            </div>
+        </div>
     </div>
 
     <!-- Messages -->
-    <div th:if="${message}" class="alert alert-warning mt-3">
+    <div th:if="${message}" class="alert alert-info alert-dismissible fade show mb-4">
+        <i class="bi bi-info-circle me-2"></i>
         <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
-    <div th:if="${error}" class="alert alert-danger mt-3">
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
         <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <!-- Team Members Table -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0">Team Members</h5>
-        </div>
-        <div class="card-body">
-            <div th:if="${teamMembers != null and not teamMembers.isEmpty()}">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                        <tr>
-                            <th>Employee ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Position</th>
-                            <th>Phone</th>
-                            <th>Hire Date</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="member : ${teamMembers}">
-                            <td th:text="${member.id}"></td>
-                            <td th:text="${member.email.split('@')[0]}"></td>
-                            <td th:text="${member.email}"></td>
-                            <td th:text="${member.position != null} ? ${member.position} : 'Not set'"></td>
-                            <td th:text="${member.phone != null} ? ${member.phone} : 'N/A'"></td>
-                            <td th:text="${member.hireDate != null} ? ${#temporals.format(member.hireDate, 'dd/MM/yyyy')} : 'N/A'"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Team Summary -->
-                <div class="row mt-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <h6>Team Summary</h6>
-                                <div class="row text-center">
-                                    <div class="col-md-6">
-                                        <h4 th:text="${teamMembers.size()}">0</h4>
-                                        <small class="text-muted">Total Members</small>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h4 th:text="${department != null} ? ${department.name} : 'N/A'"></h4>
-                                        <small class="text-muted">Department</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+    <!-- Team Stats -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="stat-card team-stat">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-people-fill fs-1" style="color: var(--secondary-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h2 class="mb-1" th:text="${teamMembers != null} ? ${teamMembers.size()} : 0">0</h2>
+                        <p class="text-muted mb-0">Team Members</p>
                     </div>
                 </div>
             </div>
-            <div th:if="${teamMembers == null or teamMembers.isEmpty()}" class="text-center py-4">
-                <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
-                <h5 class="text-muted">No team members found</h5>
-                <p class="text-muted" th:if="${department == null}">
-                    You are not assigned to any department. Please contact HR.
-                </p>
-                <p class="text-muted" th:if="${department != null}">
-                    No employees are assigned to your department yet.
-                </p>
-                <a th:href="@{/manager/dashboard}" class="btn btn-primary mt-2">
-                    <i class="bi bi-arrow-left"></i> Back to Dashboard
-                </a>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card dept-stat">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="bi bi-building fs-1" style="color: var(--accent-color);"></i>
+                    </div>
+                    <div class="text-start">
+                        <h4 class="mb-1" th:text="${department != null} ? ${department.name} : 'N/A'"></h4>
+                        <p class="text-muted mb-0">Department</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Team Table -->
+    <div class="content-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h5 class="mb-1"><i class="bi bi-list-ul me-2"></i> Team Members List</h5>
+                <p class="text-muted mb-0" th:text="${teamMembers != null} ? 'Showing ' + ${teamMembers.size()} + ' team members' : 'No team members'"></p>
+            </div>
+            <div class="d-flex align-items-center">
+                    <span class="badge bg-primary fs-6 px-3 py-2">
+                        <i class="bi bi-people me-1"></i>
+                        <span th:text="${teamMembers != null} ? ${teamMembers.size()} : 0"></span> Members
+                    </span>
+            </div>
+        </div>
+
+        <div th:if="${teamMembers != null and not teamMembers.isEmpty()}">
+            <div class="table-responsive">
+                <table class="table table-hover table-custom">
+                    <thead>
+                    <tr>
+                        <th style="width: 10%;">ID</th>
+                        <th style="width: 25%;">Employee</th>
+                        <th style="width: 20%;">Position</th>
+                        <th style="width: 20%;">Contact</th>
+                        <th style="width: 15%;">Hire Date</th>
+                        <th style="width: 10%;">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="member : ${teamMembers}">
+                        <td>
+                            <span class="badge bg-secondary">#<span th:text="${member.id}"></span></span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-3">
+                                    <span th:text="${member.email.split('@')[0].substring(0,1).toUpperCase()}"></span>
+                                </div>
+                                <div>
+                                    <strong th:text="${member.email.split('@')[0]}"></strong>
+                                    <br>
+                                    <small th:text="${member.email}" class="text-muted"></small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-position" th:text="${member.position != null} ? ${member.position} : 'Not set'"></span>
+                        </td>
+                        <td>
+                            <div>
+                                <i class="bi bi-envelope me-2 text-muted"></i>
+                                <small th:text="${member.email}"></small>
+                            </div>
+                            <div class="mt-1">
+                                <i class="bi bi-telephone me-2 text-muted"></i>
+                                <small th:text="${member.phone != null} ? ${member.phone} : 'N/A'"></small>
+                            </div>
+                        </td>
+                        <td>
+                            <span th:text="${member.hireDate != null} ? ${#temporals.format(member.hireDate, 'dd MMM yyyy')} : 'N/A'"></span>
+                        </td>
+                        <td>
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i> Active
+                                    </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div th:if="${teamMembers == null or teamMembers.isEmpty()}" class="empty-state">
+            <i class="bi bi-people empty-state-icon"></i>
+            <h4 class="text-muted mb-3">No Team Members Found</h4>
+            <p class="text-muted mb-4" th:if="${department == null}">
+                You are not currently assigned to any department.<br>
+                Please contact HR for department assignment.
+            </p>
+            <p class="text-muted mb-4" th:if="${department != null}">
+                No employees are currently assigned to your department.<br>
+                Employees will appear here once they are added to your department.
+            </p>
+            <a th:href="@{/manager/dashboard}" class="btn btn-primary">
+                <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div class="mt-4 text-center text-muted">
+        <p class="mb-0">
+            <i class="bi bi-info-circle me-1"></i>
+            You are viewing team members from your department only.
+            To see employees from other departments, contact HR.
+        </p>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Add active class to current nav item
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    });
+</script>
 </body>
 </html>
