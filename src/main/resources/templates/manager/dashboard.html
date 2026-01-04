@@ -4,17 +4,163 @@
     <meta charset="UTF-8">
     <title>Manager Dashboard - EMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .stat-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .team-member-row {
+            transition: all 0.3s;
+        }
+        .team-member-row:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-info">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#">EMS - Manager</a>
-        <!-- Navigation similar to others -->
+        <a class="navbar-brand" th:href="@{/manager/dashboard}">Manager Portal</a>
+        <div class="navbar-text text-light ms-auto me-3">
+            Welcome, <span th:text="${manager != null} ? ${manager.email} : 'User'"></span>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-light">Logout</button>
+        </form>
     </div>
 </nav>
+
 <div class="container mt-4">
-    <h2>Manager Dashboard</h2>
-    <!-- Team management features -->
+    <h2><i class="bi bi-person-badge"></i> Manager Dashboard</h2>
+
+    <!-- Messages -->
+    <div th:if="${error}" class="alert alert-danger mt-3">
+        <span th:text="${error}"></span>
+    </div>
+
+    <!-- Welcome Message -->
+    <div th:if="${manager != null}" class="alert alert-info">
+        <h5>Welcome, <span th:text="${manager.email.split('@')[0]}"></span>!</h5>
+        <p class="mb-0" th:if="${manager.department != null}">
+            You are managing the <strong th:text="${manager.department.name}"></strong> department.
+        </p>
+        <p class="mb-0" th:if="${manager.department == null}">
+            You are not assigned to any department yet.
+        </p>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card border-primary">
+                <div class="card-body text-center">
+                    <i class="bi bi-people fs-1 text-primary mb-2"></i>
+                    <h3 th:text="${teamSize != null} ? ${teamSize} : 0">0</h3>
+                    <p class="text-muted mb-0">Team Members</p>
+                    <a th:href="@{/manager/team}" class="btn btn-sm btn-primary mt-2">View Team</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card border-warning">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock-history fs-1 text-warning mb-2"></i>
+                    <h3 th:text="${pendingLeavesCount != null} ? ${pendingLeavesCount} : 0">0</h3>
+                    <p class="text-muted mb-0">Pending Leaves</p>
+                    <a th:href="@{/manager/leaves}" class="btn btn-sm btn-warning mt-2">Review</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card stat-card border-success">
+                <div class="card-body text-center">
+                    <i class="bi bi-building fs-1 text-success mb-2"></i>
+                    <h5 th:text="${manager.department != null} ? ${manager.department.name} : 'No Dept'"></h5>
+                    <p class="text-muted mb-0">Your Department</p>
+                    <small th:text="${manager.position != null} ? ${manager.position} : 'Manager'"></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Members Preview -->
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people"></i> My Team Members</h5>
+            <span class="badge bg-light text-dark" th:text="'Total: ' + ${teamSize}"></span>
+        </div>
+        <div class="card-body">
+            <div th:if="${teamMembers != null and not teamMembers.isEmpty()}">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Position</th>
+                            <th>Phone</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="member : ${teamMembers}" class="team-member-row">
+                            <td th:text="${member.email.split('@')[0]}"></td>
+                            <td th:text="${member.email}"></td>
+                            <td th:text="${member.position != null} ? ${member.position} : 'Not set'"></td>
+                            <td th:text="${member.phone != null} ? ${member.phone} : 'N/A'"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a th:href="@{/manager/team}" class="btn btn-primary">
+                        View All Team Members <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div th:if="${teamMembers == null or teamMembers.isEmpty()}" class="text-center py-4">
+                <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted">No team members</h5>
+                <p class="text-muted" th:if="${manager.department == null}">
+                    You are not assigned to any department. Please contact HR.
+                </p>
+                <p class="text-muted" th:if="${manager.department != null}">
+                    No team members are assigned to your department yet.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Quick Actions</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <a th:href="@{/manager/team}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-people"></i> View Full Team
+                    </a>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <a th:href="@{/manager/leaves}" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-calendar-check"></i> Manage Leaves
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

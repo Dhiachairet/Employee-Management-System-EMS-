@@ -11,7 +11,6 @@ public interface DepartmentService {
     void deleteDepartment(Long id);
     Department findByName(String name);
 
-    // New methods for controllers
     long getTotalDepartments();
     long countEmployeesInDepartment(Long departmentId);
 }
